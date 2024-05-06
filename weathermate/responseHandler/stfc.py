@@ -50,34 +50,12 @@ def generateSTFCLiveWeather(res):
 
     mask = res[(res['fcst_date'] == date) & (res['fcst_time'] == time)]
 
-
-
-    print('==== Live Weather mask ====')
-    print(mask)
-
     # 만약 mask가 비어있다면 res의 첫번째 row의 fcst_time 을 가져와 mask를 다시 생성한다.
     if mask.empty:
-        print('==== Live Weather mask is empty ====')
-        print(res)
         time = res.iloc[0]['fcst_time']
         mask = res[(res['fcst_date'] == date) & (res['fcst_time'] == time)]
 
     pivot = mask.pivot(index='fcst_time', columns='category', values='fcst_value')
-
-    print('==== Live Weather time ====')
-    print(time)
-
-
-    
-
-    # res_df = pd.DataFrame({
-    #     'TMP': f"{pivot['TMP'].tolist()[0]}°C",
-    #     'POP': f"{pivot['POP'].tolist()[0]}%",
-    #     'REH': f"{pivot['REH'].tolist()[0]}%",
-    #     'WSD': f"{pivot['WSD'].tolist()[0]}m/s",
-    #     'SKY': SKY_translator(int(pivot['SKY'].tolist()[0])),
-    #     'PTY': PTY_translator(int(pivot['PTY'].tolist()[0]))
-    # })
 
     res_dict = {
         'TIME_OF_STR': time_str,
@@ -90,9 +68,6 @@ def generateSTFCLiveWeather(res):
         'SKY': int(pivot['SKY'].tolist()[0]),
         'PTY': int(pivot['PTY'].tolist()[0])
     }
-
-    print('==== Live Weather res_dict ====')
-    print(res_dict)
 
     return res_dict
 
@@ -120,21 +95,11 @@ def generateSTFCPlot(res):
         'fcst_value' : fcst_values
     })
 
-    # 20240505
-
     res['datetime'] = pd.to_datetime(res['fcst_date'] + res['fcst_time'], format='%Y%m%d%H%M')
     
     nowDate = pd.Timestamp.now(tz='Asia/Seoul')
-
-    # res = res[res['datetime'] >= nowDate]
     res = res[res['datetime'].dt.tz_localize('Asia/Seoul') >= nowDate]
     res['datestr'] = res['datetime'].dt.strftime('%H시')
-
-    
-    # print(res)
-
-    # TMP, POP
-    # VEC(풍향), WSD(풍속)
 
     tmp = []
     pop = []
@@ -143,8 +108,6 @@ def generateSTFCPlot(res):
     time = []
 
     for name, group in res.groupby('category'):
-        print(name)
-        print(group)
 
         time = group['datestr'].tolist()
 
@@ -156,12 +119,6 @@ def generateSTFCPlot(res):
             vec = group['fcst_value'].tolist()
         elif name == 'WSD':
             wsd = group['fcst_value'].tolist()
-    
-    print(len(tmp))
-    print(len(pop))
-    print(len(vec))
-    print(len(wsd))
-    print(len(time))
 
     return pd.DataFrame({
         'time': time,

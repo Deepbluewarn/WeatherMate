@@ -69,3 +69,50 @@ def api_err_translator(err_code):
         '99': '기타에러'
     }
     return err_dict.get(err_code, '알 수 없는 에러 코드')
+
+def shortenCityName(city):
+    res = ''
+    if city == '서울특별시':
+        res = '서울'
+    elif city == '부산광역시':
+        res = '부산'
+    elif city == '대구광역시':
+        res = '대구'
+    elif city == '인천광역시':
+        res = '인천'
+    elif city == '광주광역시':
+        res = '광주'
+    elif city == '대전광역시':
+        res = '대전'
+    elif city == '울산광역시':
+        res = '울산'
+    elif city == '세종특별자치시':
+        res = '세종'
+    elif city == '경기도':
+        res = '경기'
+    elif city == '강원도':
+        res = '강원'
+    elif city == '충청북도':
+        res = '충북'
+    elif city == '충청남도':
+        res = '충남'
+    elif city == '전라북도':
+        res = '전북'
+    elif city == '전라남도':
+        res = '전남'
+    elif city == '경상북도':
+        res = '경북'
+    elif city == '경상남도':
+        res = '경남'
+    elif city == '제주특별자치도':
+        res = '제주'
+    return res
+
+def airConditionGrade_translator(value):
+    grade_dict = {
+        1: '좋음',
+        2: '보통',
+        3: '나쁨',
+        4: '매우 나쁨'
+    }
+    return grade_dict.get(value, 'N/A')

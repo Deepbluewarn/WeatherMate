@@ -1,7 +1,10 @@
+import asyncio
 from tkinter.font import Font
 from ttkbootstrap import Frame, Label
 
-from weathermate.tools.translator import PTY_translator
+from weathermate.api.air_condition import getAirConditionInfo
+from weathermate.tools.config import getUserConfig
+from weathermate.tools.translator import PTY_translator, airConditionGrade_translator
 
 class LiveWeather:
     def __init__(self, parentFrame, pty, time_of_str, day_of_week, time, icon, temp, pop, reh, wind):
@@ -68,8 +71,28 @@ class LiveWeather:
         timeLabel = Label(self.rightFrame, text=f'({self.day_of_week}) {self.time_of_str}', bootstyle="default", font=self.font)
         timeLabel.grid(row=1, column=0, sticky='e')
 
-        weatherLabel = Label(self.rightFrame, text=PTY_translator(self.pty), bootstyle="default", font=self.font)
+
+        if self.pty == 0:
+            text = ''
+        else:
+            text = PTY_translator(self.pty)
+
+        weatherLabel = Label(self.rightFrame, text=text, bootstyle="default", font=self.font)
         weatherLabel.grid(row=2, column=0, sticky='e')
+
+        async def updateAirConditionInfo():
+            userConfig = getUserConfig()
+            res = await getAirConditionInfo(userConfig['ac_station'])
+
+            res = res['response']['body']['items'][0]
+
+            text = f'미세먼지: {res["pm10Value"]}㎍/㎥ ({airConditionGrade_translator(int(res["pm10Grade"]))})'
+
+            air_conditionLable = Label(self.rightFrame, text=text, bootstyle="default", font=self.font)
+            air_conditionLable.grid(row=3, column=0, sticky='e')
+            
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(updateAirConditionInfo())
 
     def get_frame(self):
         return self.mainFrame

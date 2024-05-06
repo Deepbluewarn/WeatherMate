@@ -6,6 +6,8 @@ import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Messagebox
 from ttkbootstrap.constants import *
 
+from weathermate.api.ai import get_ai_response
+from weathermate.api.air_condition import getAirConditionStationList
 from weathermate.api.shortTerm import getShortTermWeatherInfo
 from weathermate.main.widgets.DayWeather import DayWeather
 from weathermate.main.widgets.LiveWeather import LiveWeather
@@ -17,9 +19,13 @@ import pytz
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
 
 from weathermate.responseHandler.stfc import generateSTFCLiveWeather, generateSTFCPlot, handleShortTermWeatherInfo
 from weathermate.tools.translator import SKY_Emote_translator, SKY_translator, weekday_translator
+
+font_name = fm.FontProperties(fname='./font.ttf').get_name()
+plt.rc('font', family=font_name)
 
 def configTop():
     df = pd.DataFrame()
@@ -41,7 +47,13 @@ def configTop():
 
         comboBox_2.set("지역구 선택")
         comboBox_3.set("동네 선택")
+        comboBox_4.set("미세먼지 측정소 선택")
         comboBox_2['values'] = sorted(set(city_df['2단계'].dropna().astype(str).to_list()))
+
+        # 도시별 미세먼지 측정소 정보를 가져옵니다.
+
+        stationList = getAirConditionStationList(selected_city)['response']['body']['items']
+        comboBox_4['values'] = [x['stationName'] for x in stationList]
 
     def listBySecond(event):
         selected_value = comboBox_2.get()
@@ -59,6 +71,10 @@ def configTop():
         sr_config = {
             'location': [third['격자 X'].to_list()[0], third['격자 Y'].to_list()[0]],
             'location_name': f'{comboBox_1.get()} {comboBox_2.get()} {comboBox_3.get()}',
+            'location_cityName': comboBox_1.get(),
+            'location_secondName': comboBox_2.get(),
+            'location_thirdName': comboBox_3.get(),
+            'ac_station': comboBox_4.get()
         }
 
         with open('config.json', 'w') as f:
@@ -81,6 +97,7 @@ def configTop():
     comboBox_1 = ttk.Combobox(config_frame, values=sorted(set(df['1단계'].dropna().astype(str).to_list())))
     comboBox_2 = ttk.Combobox(config_frame)
     comboBox_3 = ttk.Combobox(config_frame)
+    comboBox_4 = ttk.Combobox(config_frame)
 
     comboBox_1.set("도시 선택")
     comboBox_2.set("지역구 선택")
@@ -94,26 +111,12 @@ def configTop():
 
     comboBox_3.grid(row=1, column=2, padx=10, pady=10)
 
+    comboBox_4.grid(row=1, column=3, padx=10, pady=10)
+
     saveButton = ttk.Button(config_frame, text="저장", command=saveConfig)
     saveButton.grid(row=1, column=3, padx=10, pady=10)
 
     return top
-
-# def checkConfig():
-#     init = False
-
-#     try:
-#         with open('config.json', 'r') as f:
-#             config_file = json.load(f)
-#     except FileNotFoundError:
-#         init = True
-#     except json.JSONDecodeError:
-#         Messagebox.show_error("WeatherMate", "설정 파일을 불러오는 중 문제가 발생했습니다. 설정 파일을 삭제하고 다시 실행해주세요.")
-
-#     # 설정 파일이 없는 경우, 사용자에게 설정을 입력받습니다.
-
-#     if init == True:
-#         configTop()
 
 def main():
     print('main called')
@@ -154,12 +157,11 @@ def main():
         print("Button Clicked")
         plt.close('all')
         if type == 'temp':
-            x = stfc_plot_df['tmp'].to_list()[:24]
-            Plot(live_fcst_frame, stfc_plot_df['tmp'].astype(int).to_list()[:24], stfc_plot_df['time'].to_list()[:24]).grid(row=2, column=0)
+            Plot(live_fcst_frame, stfc_plot_df['tmp'].astype(int).to_list()[:24], stfc_plot_df['time'].to_list()[:24], '기온').grid(row=2, column=0)
         elif type == 'pop':
-            Plot(live_fcst_frame, stfc_plot_df['pop'].astype(int).to_list()[:24], stfc_plot_df['time'].to_list()[:24]).grid(row=2, column=0)
+            Plot(live_fcst_frame, stfc_plot_df['pop'].astype(int).to_list()[:24], stfc_plot_df['time'].to_list()[:24], '강수확률').grid(row=2, column=0)
         elif type == 'wind':
-            Plot(live_fcst_frame, stfc_plot_df['wsd'].astype(float).to_list()[:24], stfc_plot_df['time'].to_list()[:24]).grid(row=2, column=0)
+            Plot(live_fcst_frame, stfc_plot_df['wsd'].astype(float).to_list()[:24], stfc_plot_df['time'].to_list()[:24], '풍속').grid(row=2, column=0)
 
 
     live_fcst_frame = Frame(root, bootstyle="default")
@@ -181,7 +183,7 @@ def main():
     windButton = ttk.Button(controlFrame, text="바람", command=lambda: onButtonClicked('wind'))
     windButton.grid(row=0, column=2, padx=4)
 
-    Plot(live_fcst_frame, [0], [0]).grid(row=2, column=0)
+    Plot(live_fcst_frame, stfc_plot_df['tmp'].astype(int).to_list()[:24], stfc_plot_df['time'].to_list()[:24], '기온').grid(row=2, column=0)
 
     st_fcst_frame = ttk.Frame(live_fcst_frame, bootstyle="default")
     st_fcst_frame.grid(row=3, column=0)
@@ -198,7 +200,9 @@ def main():
     chatGPTFrame = ttk.LabelFrame(live_fcst_frame, text='AI 제안', bootstyle="default")
     chatGPTFrame.grid(row=4, column=0, padx=10, pady=10, sticky='ew')
 
-    chatGPTLabel = Label(chatGPTFrame, text="Chat with GPT-4", bootstyle="default")
+    ai_res = get_ai_response(live_dict['TMP'], live_dict['REH'], live_dict['POP'])
+
+    chatGPTLabel = Label(chatGPTFrame, text=ai_res, bootstyle="default")
     chatGPTLabel.grid(row=0, column=0, padx=10, pady=10)
 
     return root
