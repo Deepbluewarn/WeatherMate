@@ -6,7 +6,7 @@ from weathermate.tools.translator import shortenCityName
 
 load_dotenv()
 
-def getAirConditionStationList(cityName):
+async def getAirConditionStationList(cityName):
     url = os.environ.get('API_AIRKOREA_LIST_BASE_URL') + '/getMsrstnList'
 
     params = {

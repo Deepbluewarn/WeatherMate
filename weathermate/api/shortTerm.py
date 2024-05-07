@@ -17,9 +17,9 @@ def get_nearest_base_time():
     nearest_base_time = min(base_times, key=lambda x:abs(x-current_time))
     return str(nearest_base_time).zfill(4)
 
-def getShortTermWeatherInfo(date, time):
-    # print(date)
-    # print(get_nearest_base_time())
+async def getShortTermWeatherInfo(date, time):
+    print(date)
+    print(get_nearest_base_time())
     config = getUserConfig()
     url = os.environ.get('API_ST_BASE_URL') + '/getVilageFcst'
     params = {

@@ -91,8 +91,5 @@ class LiveWeather:
             air_conditionLable = Label(self.rightFrame, text=text, bootstyle="default", font=self.font)
             air_conditionLable.grid(row=3, column=0, sticky='e')
             
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(updateAirConditionInfo())
-
     def get_frame(self):
         return self.mainFrame
