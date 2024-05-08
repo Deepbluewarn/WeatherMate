@@ -21,7 +21,7 @@ def getAirConditionStationList(cityName):
     except requests.exceptions.RequestException as e:
         raise Exception(e)
     
-async def getAirConditionInfo(stationName):
+def getAirConditionInfo(stationName):
     url = os.environ.get('API_AIRKOREA_LIVE_BASE_URL') + '/getMsrstnAcctoRltmMesureDnsty'
 
     params = {
