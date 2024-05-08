@@ -120,18 +120,19 @@ def configTop():
 
 def main():
     print('main called')
-    root = ttk.Window(title='WeatherMate', maxsize=(940, 550))
+    root = ttk.Window(title='WeatherMate', maxsize=(940, 600))
     root.geometry("940x600")
 
     init = False
 
     try:
         with open('config.json', 'r') as f:
-            config_file = json.load(f)
+            json.load(f)
     except FileNotFoundError:
         init = True
     except json.JSONDecodeError:
         Messagebox.show_error("WeatherMate", "설정 파일을 불러오는 중 문제가 발생했습니다. 설정 파일을 삭제하고 다시 실행해주세요.")
+        return
 
     # 설정 파일이 없는 경우, 사용자에게 설정을 입력받습니다.
 
@@ -150,8 +151,6 @@ def main():
     # 현재 날씨 요약 정보를 처리합니다.
     # 단기 예보 정보를 처리합니다.
     stfc_df = handleShortTermWeatherInfo(res)
-
-    # print(stfc_df)
 
     def onButtonClicked(type):
         print("Button Clicked")
@@ -200,7 +199,7 @@ def main():
     chatGPTFrame = ttk.LabelFrame(live_fcst_frame, text='AI 제안', bootstyle="default")
     chatGPTFrame.grid(row=4, column=0, padx=10, pady=10, sticky='ew')
 
-    ai_res = get_ai_response(live_dict['TMP'], live_dict['REH'], live_dict['POP'])
+    ai_res = get_ai_response(live_dict, stfc_plot_df)
 
     chatGPTLabel = Label(chatGPTFrame, text=ai_res, bootstyle="default")
     chatGPTLabel.grid(row=0, column=0, padx=10, pady=10)
