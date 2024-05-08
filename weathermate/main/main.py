@@ -1,6 +1,6 @@
 # from tkinter.ttk import LabelFrame
 import json
-from tkinter import StringVar
+from tkinter import BooleanVar, StringVar
 from ttkbootstrap import Frame, Label, Toplevel
 import ttkbootstrap as ttk
 from ttkbootstrap.dialogs import Messagebox
@@ -27,13 +27,10 @@ from weathermate.tools.translator import SKY_Emote_translator, SKY_translator, w
 font_name = fm.FontProperties(fname='./font.ttf').get_name()
 plt.rc('font', family=font_name)
 
-def configTop():
+def configFrame(parentFrame, initVar):
     df = pd.DataFrame()
-    top = Toplevel(title='WeatherMate 설정', maxsize=(940, 550))
-    
-    top.geometry("940x600")
-    top.attributes('-topmost', 'true')
-    top.grab_set()
+    top = Frame(parentFrame, bootstyle="default")
+    top.grid(row=0, column=0, padx=10, pady=10)
 
     config_frame = Frame(top, bootstyle="default")
     config_frame.grid(row=0, column=0, padx=10, pady=10)
@@ -79,6 +76,7 @@ def configTop():
 
         with open('config.json', 'w') as f:
             json.dump(sr_config, f)
+            initVar.set(False)
         
         top.destroy()
         top.update()
@@ -120,25 +118,26 @@ def configTop():
 
 def main():
     print('main called')
-    root = ttk.Window(title='WeatherMate', maxsize=(940, 600))
-    root.geometry("940x600")
+    root = ttk.Window(title='WeatherMate', maxsize=(940, 700))
+    root.geometry("940x700")
 
-    init = False
+    initVar = BooleanVar()
 
     try:
         with open('config.json', 'r') as f:
             json.load(f)
     except FileNotFoundError:
-        init = True
+        initVar.set(True)
     except json.JSONDecodeError:
         Messagebox.show_error("WeatherMate", "설정 파일을 불러오는 중 문제가 발생했습니다. 설정 파일을 삭제하고 다시 실행해주세요.")
         return
 
     # 설정 파일이 없는 경우, 사용자에게 설정을 입력받습니다.
 
-    if init == True:
-        root.wait_window(configTop())
+    if initVar.get() == True:
+        configFrame(root, initVar).wait_variable(initVar)
 
+    print('메인 함수 실행')
     try:
         korea = pytz.timezone('Asia/Seoul')
         res = getShortTermWeatherInfo(date = datetime.now(korea).strftime('%Y%m%d'), time = datetime.now(korea).strftime('%H00'))
@@ -201,7 +200,7 @@ def main():
 
     ai_res = get_ai_response(live_dict, stfc_plot_df)
 
-    chatGPTLabel = Label(chatGPTFrame, text=ai_res, bootstyle="default")
+    chatGPTLabel = Label(chatGPTFrame, text=ai_res, bootstyle="default", wraplength=600)
     chatGPTLabel.grid(row=0, column=0, padx=10, pady=10)
 
     return root
