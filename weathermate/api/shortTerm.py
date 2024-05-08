@@ -14,6 +14,8 @@ def get_nearest_base_time():
     base_times = [200, 500, 800, 1100, 1400, 1700, 2000, 2300]
     now = datetime.now()
     current_time = now.hour * 100 + now.minute
+    # Remove times in the future
+    base_times = [time for time in base_times if time <= current_time]
     nearest_base_time = min(base_times, key=lambda x:abs(x-current_time))
     return str(nearest_base_time).zfill(4)
 
