@@ -80,19 +80,22 @@ class LiveWeather:
         weatherLabel = Label(self.rightFrame, text=text, bootstyle="default", font=self.font)
         weatherLabel.grid(row=2, column=0, sticky='e')
 
-        async def updateAirConditionInfo():
-            userConfig = getUserConfig()
-            res = await getAirConditionInfo(userConfig['ac_station'])
+        userConfig = getUserConfig()
+        res = getAirConditionInfo(userConfig['ac_station'])
 
-            res = res['response']['body']['items'][0]
+        res = res['response']['body']['items']
 
+        if len(res) == 0:
+            text = '미세먼지 정보가 없습니다.'
+        else:
+            res = res[0]
             text = f'미세먼지: {res["pm10Value"]}㎍/㎥ ({airConditionGrade_translator(int(res["pm10Grade"]))})'
 
-            air_conditionLable = Label(self.rightFrame, text=text, bootstyle="default", font=self.font)
-            air_conditionLable.grid(row=3, column=0, sticky='e')
-            
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(updateAirConditionInfo())
+        air_conditionLable = Label(self.rightFrame, text=text, bootstyle="default", font=self.font)
+        air_conditionLable.grid(row=3, column=0, sticky='e')
+
+        weatherLabel = Label(self.rightFrame, text=userConfig['location_name'], bootstyle="default", font=self.font)
+        weatherLabel.grid(row=4, column=0, sticky='e')
 
     def get_frame(self):
         return self.mainFrame
