@@ -112,7 +112,7 @@ def configFrame(parentFrame, initVar):
     comboBox_4.grid(row=1, column=3, padx=10, pady=10)
 
     saveButton = ttk.Button(config_frame, text="저장", command=saveConfig)
-    saveButton.grid(row=1, column=3, padx=10, pady=10)
+    saveButton.grid(row=1, column=4, padx=10, pady=10)
 
     return top
 

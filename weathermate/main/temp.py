@@ -1,19 +1,16 @@
-import tkinter
+from tkinter import *
 
-window=tkinter.Tk()
-window.title("YUN DAE HEE")
-window.geometry("640x400+100+100")
-window.resizable(False, False)
+root = Tk()
+root.geometry("200x200")
 
+button1 = Button(root, text="Button 1")
+button1.grid(row=0, column=0, sticky="nsew")
 
+button2 = Button(root, text="Button 2")
+button2.grid(row=1, column=0, sticky="nsew")
 
-# toplevel = tkinter.Toplevel(window)
-# toplevel.geometry("320x200+820+100")
+root.grid_rowconfigure(0, weight=1)
+root.grid_rowconfigure(1, weight=1)
+root.grid_columnconfigure(0, weight=1)
 
-# label=tkinter.Label(toplevel, text="YUN DAE HEE")
-# label.pack()
-
-mainLabel = tkinter.Label(window, text="YUN DAE HEE")
-mainLabel.pack()
-
-window.mainloop()
+root.mainloop()
